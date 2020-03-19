@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script src='../netcad/jquery.zoom.js'></script>
+    <link rel="stylesheet" href="../netcad/netcad.css">
+</head>
+<style>
+    .item-container {
+        cursor: pointer;
+        border: 1px solid #ddd;
+        margin-top: 5px;
+        background-color: #f6f6f6;
+        padding: 12px;
+        text-decoration: none;
+        font-size: 18px;
+        color: black;
+    }
+
+    .column {
+        float: left;
+        width: 31.5%;
+        padding: 10px;
+        height: 1000px;
+    }
+
+    .item-container:hover {
+        background-color: antiquewhite;
+    }
+
+    .baslik {
+        text-align: center;
+    }
+
+    .item-img {
+        display: inline-block;
+        position: relative;
+    }
+
+    .item-img:after {
+        content: '';
+        display: block;
+        width: 33px;
+        height: 33px;
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: url(icon.png);
+    }
+
+    .item-img img {
+        display: block;
+    }
+</style>
+
+<body>
+    <h2 class='baslik'>NETCAD </h2>
+    <div>
+    </div>
+    <div class="row">
+        <div class="column documents-container" style="background-color:#aaa;"> </div>
+        <div class="column documents-container2" style="background-color:#bbb;"></div>
+        <div class="column documents-container3" style="background-color:#ccc;"></div>
+    </div>
+
+    <script>
+        var collection = [];
+        var collectionBelge = [];
+        var collectionBelgeEk = [];
+
+        function netigmaDocument(objectid, dosya_no, documentid) {
+            this.objectid = objectid;
+            this.documentid = documentid;
+            this.dosya_no = dosya_no;
+        }
+        function netigmaDocumentBelge(objectid, documentid, belge_no) {
+            this.objectid = objectid;
+            this.documentid = documentid;
+            this.belge_no = belge_no;
+        }
+        function netigmaDocumentEk(objectid, link, documentid) {
+            this.objectid = objectid;
+            this.documentid = documentid;
+            this.link = link;
+        }
+        function init() {
+            $(document).ready(function () {
+                var postdata = {
+                    username: 'baris.elvanoglu',
+                    password: '6799'
+                }
+                $.ajax({
+                    type: "POST",
+                    url: "http://projeler.netcad.com.tr/demo1/gisapi/authentication/login",
+                    data: JSON.stringify(postdata),
+                    dataType: "json",
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (result) {
+                        var sessionid = result.sessionid;
+                        getDocument(sessionid);
+                        renderDocument(sessionid);
+                    },
+                    error: function (e) {
+                        console.log(e);
+                    }
+                });
+            });
+
+            function getDocument(sessionid) {
+                $.ajax({
+                    type: "GET",
+                    url: "http://projeler.netcad.com.tr/demo1/gisapi/query/query?queryname=arsiv_dosyalar.Sorgusu&sessionid=" + sessionid,
+                    dataType: "json",
+                    contentType: 'application/json; charset=utf-8',
+                    success: function (result) {
+                        $('#greeting-content').append(result.Rows[0].dosya_no);
+                        $.each(result.Rows, function (i, o) {
+                            // console.log(result.Rows[i].Cells[1].Value);
+                            collection.push(new netigmaDocument(result.Rows[i].Cells[0].Value, result.Rows[i].Cells[1].Value));
+                        });
+                        renderDocument(collection);
+                    },
+                    error: function (e) {
+                        console.log(e);
+                    }
+                });
+            }
+            collectionBelgeEk.push(new netigmaDocumentEk(1, "https://images.unsplash.com/photo-1583346398313-5074c4dda42e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80", 1));
+            collectionBelgeEk.push(new netigmaDocumentEk(3, "https://images.unsplash.com/photo-1528058340-31f0d44d46da?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80", 2));
+            collectionBelgeEk.push(new netigmaDocumentEk(4, "https://images.unsplash.com/photo-1583133104187-d2486753e97c?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=320&q=80", 3));
+            collectionBelgeEk.push(new netigmaDocumentEk(5, "https://images.unsplash.com/photo-1583743220494-3da91330c2fd?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=401&q=80", 4));
+            collectionBelgeEk.push(new netigmaDocumentEk(5, "https://images.unsplash.com/photo-1583778957124-763fd4826122?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80", 5));
+        }
+        function renderDocument(documents, sessionid) {
+            if (documents == undefined || documents == null) return;
+            var container = $(".documents-container");
+            var container2 = $(".documents-container2");
+            var container3 = $(".documents-container3");
+            container.html("");
+            $.each(documents, function (i, o) {
+                var item = $("<div>").addClass("item-container");
+                var label = $("<span>").addClass("item-label");
+                label.html(o.dosya_no);
+                item.append(label);
+                container.append(item);
+
+                item.click({ document: o }, function (e) {
+                    container2.html("");
+                    $(document).ready(function () {
+                        var filter = encodeURI("dosya_no=" + o.dosya_no);
+                        alert(filter)
+                        collectionBelge = [];
+                        $.ajax({
+                            type: "GET",
+                            url: "http://projeler.netcad.com.tr/demo1/gisapi/query/query?queryname=arsiv_belgeler.Sorgusu&filter=${filter}&sessionid=" + sessionid,
+                            dataType: "json",
+                            contentType: 'application/json; charset=utf-8',
+                            success: function (result) {
+                                console.log(result)
+                                $.each(result.Rows, function (i, o) {
+                                    collectionBelge.push(new netigmaDocumentBelge(result.Rows[i].Cells[0].Value, result.Rows[i].Cells[1].Value, result.Rows[i].Cells[4].Value));
+                                });
+                            },
+                            error: function (e) {
+                                console.log(e);
+                            }
+                        }).then(function () {
+                            $.each(collectionBelge, function (i, o) {
+                                if (e.data.document.dosya_no == o.documentid) {
+                                    var item1 = $("<div>").addClass("item-container");
+                                    var label1 = $("<span>").addClass("item-label");
+                                    label1.html(o.belge_no);
+                                    item1.append(label1);
+                                    container2.append(item1);
+
+                                    item1.click({ document: o }, function (e) {
+                                        container3.html("");
+                                        $.each(collectionBelgeEk, function (i, o) {
+                                            if (e.data.document.objectid == o.documentid) {
+                                                var item2 = $("<div>").addClass("item-container2");
+                                                var image = $("<img src=''width=95%;  height= 150%; data-zoom= '' >").addClass("item-img");
+                                                image.attr("src", o.link + "| img_url: '480x480");
+                                                image.attr("data-zoom", o.link + "| img_url: '2000x2000" + 'scale:2');
+                                                $(document).ready(function () {
+                                                    $('.item-img')
+                                                        .wrap('<span style="display:inline-block"></span>')
+                                                        .css('display', 'block')
+                                                        .parent()
+                                                        .zoom({
+                                                            url: $(this).find('img').attr('data-zoom')
+                                                        });
+                                                })
+                                                image.html();
+                                                item2.append(image);
+                                                container3.append(item2);
+                                            }
+                                        });
+                                    });
+                                }
+                            });
+                        });
+                    })
+                });
+            });
+        }
+        $(document).ready(function () {
+            $('.item-img').zoom({ on: 'click' });
+        });
+        init();
+    </script>
+</body>
+
+</html>
